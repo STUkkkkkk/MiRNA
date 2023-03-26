@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybits.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="mirna.stukk.mapper.PredictionMapper">
+    <select id="getDiseaseListPredictionByMirna" resultType="mirna.stukk.Pojo.Prediction">
+        select distinct tb_disease.disease_name as name, forecast_relevance from prediction
+            inner join tb_disease on prediction.disease_id = tb_disease.id and
+        <if test="diseaseId != null and diseaseId != ''">
+            tb_disease.id != #{diseaseId} and
+        </if>
+             mirna_id = (select id from tb_mirna where mirna_name = #{mirnaName})
+            limit #{random},7;
+    </select>
+<!--     order by forecast_relevance-->
+    <select id="getMirnaListPredictionByDisease" resultType="mirna.stukk.Pojo.Prediction">
+        select distinct tb_mirna.mirna_name as name,forecast_relevance from prediction inner join
+            tb_mirna on prediction.mirna_id = tb_mirna.id and
+        <if test="mirnaId != null and mirnaId != ''">
+            tb_mirna.id != #{mirnaId} and
+        </if>
+                disease_id = (select id from tb_disease where disease_name = #{diseaseName})
+             limit #{random},7;
+    </select>
+</mapper>

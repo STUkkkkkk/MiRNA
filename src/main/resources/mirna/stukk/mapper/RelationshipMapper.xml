@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybits.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="mirna.stukk.mapper.RelationshipMapper">
+    <insert id="AddRelationshipDisease" parameterType="list">
+        insert into relationship_disease (pmid, disease_name) values
+        <foreach collection="relationshipDiseaseList" index="index" item="item" separator=",">
+            (
+             #{item.pmid},
+             #{item.diseaseName}
+            )
+        </foreach>
+    </insert>
+
+    <select id="getDiseaseListByMirna" resultType="java.lang.String">
+        select disease_name from tb_disease where id in (select DISTINCT disease_id	from tb_relationship where
+        <if test="id != null and id != ''">
+            disease_id != #{id} and
+        </if>
+         mirna_id =
+        (select id from tb_mirna where mirna_name = #{mirnaName})) limit #{random},7;
+    </select>
+
+
+    <select id="getMirnaListByDisease" resultType="java.lang.String">
+        select mirna_name from tb_mirna where id in (select DISTINCT mirna_id from tb_relationship where
+            <if test="id != null and id != ''">
+                mirna_id != #{id} and
+            </if>
+             disease_id =
+       (select id from tb_disease where disease_name = #{diseaseName})) limit #{random},7;
+    </select>
+    <select id="getMirnaIdByDiseaseId" resultType="java.lang.Long">
+        select disease_id from tb_relationship where mirna
+    </select>
+    <select id="getRelationShip" resultType="mirna.stukk.Pojo.RelationShip">
+        select pmid,mirna_name,disease_name from relationship order by pmid;
+    </select>
+    <select id="getRelationshipDiseaseList" resultType="mirna.stukk.Pojo.Relationship_disease">
+        select distinct * from relationship_disease order by pmid
+    </select>
+    <select id="getRelationshipMirnaList" resultType="mirna.stukk.Pojo.Relationship_mirna">
+        select distinct * from relationship_mirna order by pmid;
+    </select>
+</mapper>

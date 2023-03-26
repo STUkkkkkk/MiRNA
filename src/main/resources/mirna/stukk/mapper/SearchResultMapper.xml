@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybits.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="mirna.stukk.mapper.SearchResultMapper">
+
+
+
+<!--
+
+    private Long pmid;
+
+    private String title;
+    private String type;
+    private String authors;
+    private String keywords;
+    private String doi;
+    private String library;
+    private String abs;
+    private String date;
+-->
+    <resultMap id="articles" type="mirna.stukk.Pojo.Article"/>
+    <resultMap id="count" type="int"/>
+
+
+    <select id="getByDisease" resultMap="articles,count" resultType="object">
+        select SQL_CALC_FOUND_ROWS pmid,title,type,authors,doi,keywords,library,abs,date from tb_article where pmid in (select distinct pmid from tb_relationship where disease_id = (
+        select id from tb_disease where disease_name = #{diseaseName}
+<!--        <where>-->
+<!--            <if test="diseaseName != null and diseaseName != '' ">-->
+<!--                disease_name = #{diseaseName}-->
+<!--            </if>  调优！！！-->
+<!--        </where>-->
+        ))
+        <if test="startTime != null and startTime != '' ">
+            and date &gt;= #{startTime}
+        </if>
+        <if test="endTime != null and endTime != '' ">
+            and date &lt; #{endTime}
+        </if>
+        limit #{pageNum},#{pageSize};
+        select FOUND_ROWS();
+    </select>
+    <select id="getByMirna" resultType="java.lang.Object" resultMap="articles,count">
+        select SQL_CALC_FOUND_ROWS pmid,title,type,authors,doi,keywords,library,abs,date from tb_article where pmid in (select distinct pmid from tb_relationship where mirna_id = (
+        select id from tb_mirna
+        <where>
+            <if test="mirnaName != null and mirnaName != '' ">
+                and mirna_name = #{mirnaName}
+            </if>
+        </where>
+        ))
+        <if test="startTime != null and startTime != '' ">
+            and date &gt;= #{startTime}
+        </if>
+        <if test="endTime != null and endTime != '' ">
+            and date &lt; #{endTime}
+        </if>
+        limit #{pageNum},#{pageSize};
+        select FOUND_ROWS();
+    </select>
+</mapper>

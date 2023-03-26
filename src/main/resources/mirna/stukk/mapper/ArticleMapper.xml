@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybits.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="mirna.stukk.mapper.ArticleMapper">
+
+    <select id="get_1k_articles" resultType="mirna.stukk.Pojo.Article">
+        select * from tb_article limit #{from},#{size};
+    </select>
+</mapper>
