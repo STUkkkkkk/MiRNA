@@ -24,14 +24,15 @@
 
 
     <select id="getByDisease" resultMap="articles,count" resultType="object">
-        select SQL_CALC_FOUND_ROWS pmid,title,type,authors,doi,keywords,library,abs,date from tb_article where pmid in (select distinct pmid from tb_relationship where disease_id = (
+        select SQL_CALC_FOUND_ROWS pmid,title,type,authors,doi,keywords,library,abs,date from tb_article a where exists
+        (select 1 from tb_relationship r where a.pmid = r.pmid and disease_id = (
         select id from tb_disease where disease_name = #{diseaseName}
 <!--        <where>-->
 <!--            <if test="diseaseName != null and diseaseName != '' ">-->
 <!--                disease_name = #{diseaseName}-->
 <!--            </if>  调优！！！-->
 <!--        </where>-->
-        ))
+        ) )
         <if test="startTime != null and startTime != '' ">
             and date &gt;= #{startTime}
         </if>
@@ -42,13 +43,14 @@
         select FOUND_ROWS();
     </select>
     <select id="getByMirna" resultType="java.lang.Object" resultMap="articles,count">
-        select SQL_CALC_FOUND_ROWS pmid,title,type,authors,doi,keywords,library,abs,date from tb_article where pmid in (select distinct pmid from tb_relationship where mirna_id = (
-        select id from tb_mirna
-        <where>
-            <if test="mirnaName != null and mirnaName != '' ">
-                and mirna_name = #{mirnaName}
-            </if>
-        </where>
+        select SQL_CALC_FOUND_ROWS pmid,title,type,authors,doi,keywords,library,abs,date from tb_article a where exists
+        (select 1 from tb_relationship r where a.pmid = r.pmid and mirna_id = (
+        select id from tb_mirna where mirna_name = #{mirnaName}
+<!--        <where>-->
+<!--            <if test="mirnaName != null and mirnaName != '' ">-->
+<!--                and mirna_name = #{mirnaName}-->
+<!--            </if>-->
+<!--        </where>-->
         ))
         <if test="startTime != null and startTime != '' ">
             and date &gt;= #{startTime}
