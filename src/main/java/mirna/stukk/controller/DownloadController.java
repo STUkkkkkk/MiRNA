@@ -3,19 +3,21 @@ package mirna.stukk.controller;
 import cn.hutool.core.util.CharsetUtil;
 import cn.hutool.core.util.URLUtil;
 import com.alibaba.fastjson.JSON;
-import com.sun.org.apache.xpath.internal.operations.Bool;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import mirna.stukk.Pojo.Article;
+import mirna.stukk.Pojo.Calculate;
 import mirna.stukk.Pojo.DTO.ArticleDTO;
+import mirna.stukk.Pojo.RelationShip;
 import mirna.stukk.config.Result;
 import mirna.stukk.service.ArticleService;
+import mirna.stukk.service.CalculateService;
+import mirna.stukk.service.PredictionService;
+import mirna.stukk.service.RelationshipService;
 import mirna.stukk.utils.DoiUtils;
 import mirna.stukk.utils.ExcelUtils;
 import mirna.stukk.utils.PdfUtil;
 import mirna.stukk.utils.StringToListUtils;
-import org.apache.http.util.CharsetUtils;
-import org.apache.lucene.analysis.CharacterUtils;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
@@ -28,9 +30,7 @@ import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.List;
-import java.util.UUID;
 
 /**
  * @Author: stukk
@@ -44,11 +44,24 @@ public class DownloadController {
 
     @Autowired
     private ArticleService articleService;
-    
+    @Autowired
+    private RelationshipService relationshipService;
+    @Autowired
+    private PredictionService predictionService;
+
+    @Autowired
+    private CalculateService calculateService;
+
     @PostMapping("/GetArticleList")
     @ApiOperation("用Excel导出论文多篇论文的数据")
     public void downloadExcelArticle(@RequestBody List<ArticleDTO> articleDTOList, HttpServletResponse response) throws Exception {
         // 加载 Excel 模板文件
+        if(articleDTOList == null){
+            response.reset();
+            response.setContentType("application/json;charset=utf-8");
+            response.getWriter().write(Result.error("555","数据为空或者异常，下载失败").toString());
+            return ;
+        }
         String templatePath = "templates/多篇论文数据模板.xlsx";
         InputStream inputStream = this.getClass().getClassLoader().getResourceAsStream(templatePath);
 //        InputStream inputStream = Thread.currentThread().getContextClassLoader().getResourceAsStream(templatePath);
@@ -120,7 +133,149 @@ public class DownloadController {
             e.printStackTrace();
         }
     }
-    
-    
+
+    @GetMapping("/GetRelationShipByMiRNA")
+    @ApiOperation("通过mirna获取关系并下载")
+    public void GetRelationShipByMiRNA(@RequestParam String mirnaName,HttpServletResponse response) throws IOException {
+
+        List<RelationShip> relationShipList = relationshipService.query().eq("mirna_name", mirnaName).list();
+        if(relationShipList == null){
+            response.setContentType("application/json;charset=UTF-8");
+            response.getWriter().write(JSON.toJSONString(Result.error("555","查无此数据")));
+            return ;
+        }
+        String template = "templates/得证的关系模板.xlsx";
+        InputStream inputStream = this.getClass().getClassLoader().getResourceAsStream(template);
+        Workbook workbook = new SXSSFWorkbook(new XSSFWorkbook(inputStream));
+        Sheet sheet ;
+        if(workbook instanceof SXSSFWorkbook){
+            sheet = ((SXSSFWorkbook) workbook).getXSSFWorkbook().getSheetAt(0);
+        }
+        else{
+            sheet = workbook.getSheetAt(0);
+        }
+        int hang = 2; //从第3行开始
+        ExcelUtils.insertRelationshipList(sheet,relationShipList); //插入excel数据模板中
+
+        response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        response.setHeader("Content-Disposition", "attachment; filename=\"data.xlsx\"");
+        response.setHeader("Pragma", "no-cache");
+        response.setHeader("Cache-Control", "no-cache");
+        response.setDateHeader("Expires", 0);
+
+        ServletOutputStream outputStream = response.getOutputStream();
+        workbook.write(outputStream);
+        outputStream.flush();
+        outputStream.close();
+        workbook.close();
+
+    }
+
+
+    @GetMapping("/GetRelationShipByDisease")
+    @ApiOperation("通过疾病获取关系并下载")
+    public void GetRelationShipByDisease(@RequestParam String diseaseName,HttpServletResponse response) throws IOException {
+        List<RelationShip> relationShipList = relationshipService.query().eq("disease_name", diseaseName).list();
+        if(relationShipList == null){
+            response.setContentType("application/json;charset=UTF-8");
+            response.getWriter().write(JSON.toJSONString(Result.error("555","查无此数据")));
+            return ;
+        }
+        String template = "templates/得证的关系模板.xlsx";
+        InputStream inputStream = this.getClass().getClassLoader().getResourceAsStream(template);
+        Workbook workbook = new SXSSFWorkbook(new XSSFWorkbook(inputStream));
+        Sheet sheet ;
+        if(workbook instanceof SXSSFWorkbook){
+            sheet = ((SXSSFWorkbook) workbook).getXSSFWorkbook().getSheetAt(0);
+        }
+        else{
+            sheet = workbook.getSheetAt(0);
+        }
+        int hang = 2; //从第3行开始
+        ExcelUtils.insertRelationshipList(sheet,relationShipList); //插入excel数据模板中
+
+        response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        response.setHeader("Content-Disposition", "attachment; filename=\"data.xlsx\"");
+        response.setHeader("Pragma", "no-cache");
+        response.setHeader("Cache-Control", "no-cache");
+        response.setDateHeader("Expires", 0);
+
+        ServletOutputStream outputStream = response.getOutputStream();
+        workbook.write(outputStream);
+        outputStream.flush();
+        outputStream.close();
+        workbook.close();
+    }
+
+
+    @GetMapping("/GetCalculateByMiRNA")
+    @ApiOperation("通过MiRNA获取预测关系并下载")
+    public void GetCalculateByMiRNA(@RequestParam String mirnaName,HttpServletResponse response) throws IOException {
+        List<Calculate> calculateList = calculateService.query().eq("mirna", mirnaName).list();
+        if(calculateList == null){
+            response.setContentType("application/json;charset=UTF-8");
+            response.getWriter().write(JSON.toJSONString(Result.error("555","查无此数据")));
+            return ;
+        }
+        String template = "templates/预测的关系模板.xlsx";
+        InputStream inputStream = this.getClass().getClassLoader().getResourceAsStream(template);
+        Workbook workbook = new SXSSFWorkbook(new XSSFWorkbook(inputStream));
+        Sheet sheet ;
+        if(workbook instanceof SXSSFWorkbook){
+            sheet = ((SXSSFWorkbook) workbook).getXSSFWorkbook().getSheetAt(0);
+        }
+        else{
+            sheet = workbook.getSheetAt(0);
+        }
+        int hang = 2; //从第3行开始
+        ExcelUtils.insertCalculateList(sheet,calculateList); //插入excel数据模板中
+        response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        response.setHeader("Content-Disposition", "attachment; filename=\"data.xlsx\"");
+        response.setHeader("Pragma", "no-cache");
+        response.setHeader("Cache-Control", "no-cache");
+        response.setDateHeader("Expires", 0);
+
+        ServletOutputStream outputStream = response.getOutputStream();
+        workbook.write(outputStream);
+        outputStream.flush();
+        outputStream.close();
+        workbook.close();
+    }
+
+    @GetMapping("/GetCalculateByDisease")
+    @ApiOperation("通过Disease获取预测关系并下载")
+    public void GetCalculateByDisease(@RequestParam String diseaseName,HttpServletResponse response) throws IOException {
+        List<Calculate> calculateList = calculateService.query().eq("disease", diseaseName).list();
+        if(calculateList == null){
+            response.setContentType("application/json;charset=UTF-8");
+            response.getWriter().write(JSON.toJSONString(Result.error("555","查无此数据")));
+            return ;
+        }
+        String template = "templates/预测的关系模板.xlsx";
+        InputStream inputStream = this.getClass().getClassLoader().getResourceAsStream(template);
+        Workbook workbook = new SXSSFWorkbook(new XSSFWorkbook(inputStream));
+        Sheet sheet ;
+        if(workbook instanceof SXSSFWorkbook){
+            sheet = ((SXSSFWorkbook) workbook).getXSSFWorkbook().getSheetAt(0);
+        }
+        else{
+            sheet = workbook.getSheetAt(0);
+        }
+        int hang = 2; //从第3行开始
+        ExcelUtils.insertCalculateList(sheet,calculateList); //插入excel数据模板中
+        response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        response.setHeader("Content-Disposition", "attachment; filename=\"data.xlsx\"");
+        response.setHeader("Pragma", "no-cache");
+        response.setHeader("Cache-Control", "no-cache");
+        response.setDateHeader("Expires", 0);
+
+        ServletOutputStream outputStream = response.getOutputStream();
+        workbook.write(outputStream);
+        outputStream.flush();
+        outputStream.close();
+        workbook.close();
+    }
+
+
 }
 

@@ -1,5 +1,6 @@
 package mirna.stukk.mapper;
 
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import mirna.stukk.Pojo.RelationShip;
 import mirna.stukk.Pojo.Relationship_disease;
 import mirna.stukk.Pojo.Relationship_mirna;
@@ -10,7 +11,7 @@ import java.util.List;
 import java.util.Map;
 
 @Mapper
-public interface RelationshipMapper {
+public interface RelationshipMapper extends BaseMapper<RelationShip> {
     List<String> getDiseaseListByMirna (String mirnaName,Long id,Integer random);
 
     List<String> getMirnaListByDisease (String diseaseName,Long id,Integer random);

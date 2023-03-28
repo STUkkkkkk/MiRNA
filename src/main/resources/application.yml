@@ -1,31 +1,3 @@
-server:
-  port: 9999
 spring:
-  mvc:
-    pathmatch:
-      matching-strategy: ant_path_matcher
-  datasource:
-    url: jdbc:mysql://localhost:3307/Mirna?useSSl=false&&allowMultiQueries=true&useAffectedRows=true
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    username: root
-    password: 123456
-  redis:
-    host: localhost
-    port: 6379
-    database: 1
-mybatis-plus:
-  configuration:
-    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
-
-
-
-stukk:
-  elasticsearch:
-    host: 1.117.1.150:9200
-    username: elastic
-    password: xp908098
-    connectTimeout: 50000
-    socketTimeout: 50000
-    connectionRequestTimeout: 10000
-    maxConnectNum: 100
-    maxConnectPerRoute: 100
+  profiles:
+    active: dev
