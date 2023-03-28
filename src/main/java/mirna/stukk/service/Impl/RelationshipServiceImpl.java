@@ -1,5 +1,6 @@
 package mirna.stukk.service.Impl;
 
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import io.swagger.models.auth.In;
 import mirna.stukk.Pojo.*;
 import mirna.stukk.config.Result;
@@ -15,7 +16,7 @@ import org.springframework.stereotype.Service;
 import java.util.*;
 
 @Service
-public class RelationshipServiceImpl implements RelationshipService {
+public class RelationshipServiceImpl extends ServiceImpl<RelationshipMapper,RelationShip> implements RelationshipService {
 
 
     @Autowired
