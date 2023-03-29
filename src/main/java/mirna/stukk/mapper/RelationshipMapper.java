@@ -12,7 +12,7 @@ import java.util.Map;
 
 @Mapper
 public interface RelationshipMapper extends BaseMapper<RelationShip> {
-    List<String> getDiseaseListByMirna (String mirnaName,Long id,Integer random);
+    List<String> getDiseaseListByMirna (String mirnaName,Long id,Integer random); //和这个Mirna有关系的疾病名称
 
     List<String> getMirnaListByDisease (String diseaseName,Long id,Integer random);
 
@@ -26,6 +26,8 @@ public interface RelationshipMapper extends BaseMapper<RelationShip> {
     List<Relationship_disease> getRelationshipDiseaseList();
 
     List<Relationship_mirna> getRelationshipMirnaList();
+
+
 
 
 }

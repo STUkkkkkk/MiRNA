@@ -153,6 +153,12 @@
             <artifactId>mail</artifactId>
             <version>1.4.7</version>
         </dependency>
+<!--        csv依赖-->
+        <dependency>
+            <groupId>com.opencsv</groupId>
+            <artifactId>opencsv</artifactId>
+            <version>5.5.2</version>
+        </dependency>
 
     </dependencies>
 
