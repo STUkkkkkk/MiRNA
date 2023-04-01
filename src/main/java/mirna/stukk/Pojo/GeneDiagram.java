@@ -10,15 +10,20 @@ import lombok.NoArgsConstructor;
 import java.io.Serializable;
 import java.util.List;
 
+/**
+ * @Author: stukk
+ * @Description: TODO
+ * @DateTime: 2023-03-30 14:35
+ **/
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@ApiModel("mirna-疾病关系图的实体类")
-public class Diagram implements Serializable {
+@ApiModel("mirna-基因关系图的实体类")
+public class GeneDiagram implements Serializable {
 
     @ApiModelProperty("节点")
-    private List<Node> nodes;
+    private List<GeneNode> geneNodes;
 
     @ApiModelProperty("边")
     private List<Link> links;

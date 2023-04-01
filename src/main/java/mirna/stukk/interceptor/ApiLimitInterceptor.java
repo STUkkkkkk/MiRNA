@@ -44,6 +44,7 @@ public class ApiLimitInterceptor implements HandlerInterceptor {
                 if(!method.isAnnotationPresent(LimitAPI.class)){
                     return true; //不拦截
                 }
+                log.info("ip为: "+IpUtil.getIpAddr(request)+"正在访问拦截的接口:"+request.getRequestURI());
                 LimitAPI limitAPI = method.getAnnotation(LimitAPI.class);
                 if(limitAPI == null){
                     return true;
@@ -52,6 +53,7 @@ public class ApiLimitInterceptor implements HandlerInterceptor {
                 int second = limitAPI.second(); //请求时间
                 synchronized (this){ //加入同步锁
                     String key = IpUtil.getIpAddr(request) +":"+ request.getRequestURI();
+                    System.out.println(key);
                     Object value = redisTemplate.opsForValue().get(key);
                     if(value == null){
                         redisTemplate.opsForValue().set(key,"1");
@@ -61,6 +63,7 @@ public class ApiLimitInterceptor implements HandlerInterceptor {
                         int currentTimes = Integer.parseInt(value.toString()); //当前次数
                         if(currentTimes < limit){
                             //如果比要求的小
+                            currentTimes++;
                             redisTemplate.opsForValue().set(key,currentTimes+"",second, TimeUnit.SECONDS);
                         }
                         else{
@@ -104,6 +107,6 @@ public class ApiLimitInterceptor implements HandlerInterceptor {
                 outputStream.close();
             }
         }
-        return true;
+        return false;
     }
 }

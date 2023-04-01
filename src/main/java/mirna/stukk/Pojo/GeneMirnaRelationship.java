@@ -11,6 +11,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
+
 /**
  * @Author: stukk
  * @Description: TODO
@@ -22,7 +24,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @TableName(value = "gene_mirna")
 @ApiModel(value = "关于基因和mirna的关系")
-public class GeneMirnaRelationship {
+public class GeneMirnaRelationship implements Serializable {
 
     @TableId(value = "id",type = IdType.AUTO)
     @ApiModelProperty(value = "id")
