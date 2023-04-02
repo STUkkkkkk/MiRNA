@@ -1,5 +1,6 @@
 package mirna.stukk.controller;
 
+import io.swagger.annotations.Api;
 import mirna.stukk.config.Result;
 import mirna.stukk.utils.IpUtil;
 import mirna.stukk.utils.LimitAPI;
@@ -18,9 +19,10 @@ import javax.servlet.http.HttpServletRequest;
  **/
 @RestController
 @RequestMapping("/test")
+@Api(tags = "测试接口")
 public class TestController {
 
-    @GetMapping
+    @GetMapping("/getIp")
     @LimitAPI(limit = 1,second = 10)
     public Result<String> getIp(HttpServletRequest request){
         String ipAddr = IpUtil.getIpAddr(request);

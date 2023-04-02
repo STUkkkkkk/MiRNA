@@ -1,5 +1,6 @@
 package mirna.stukk.service.Impl;
 
+import cn.hutool.core.date.LocalDateTimeUtil;
 import com.alibaba.fastjson.JSON;
 import lombok.extern.slf4j.Slf4j;
 import mirna.stukk.Pojo.*;
@@ -7,14 +8,12 @@ import mirna.stukk.Pojo.DTO.ArticleDTO;
 import mirna.stukk.config.Result;
 import mirna.stukk.mapper.SearchResultMapper;
 import mirna.stukk.service.*;
-import mirna.stukk.utils.ArticleUtils;
-import mirna.stukk.utils.DoiUtils;
-import mirna.stukk.utils.KMPutils;
-import mirna.stukk.utils.StringToListUtils;
+import mirna.stukk.utils.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -62,6 +61,7 @@ public class SearchResultServiceImpl implements SearchResultService {
         }
     }
 
+    //根据j疾病名称获取
     @Override
     public Result<SearchResult> getByDisease(Integer pageNum, String diseaseName,String startTime,String endTime,Integer pageSize) {
         int num1 = (pageNum - 1)*pageSize;
@@ -86,6 +86,9 @@ public class SearchResultServiceImpl implements SearchResultService {
 
 
         SearchResult searchDisease =  new SearchResult(num, ArticleUtils.ArticleListToDto(articles));
+        //将搜索记录+1;
+        String key = PrefixUtils.ArticleDiseaseRecordKey + LocalDateTimeUtil.format(LocalDateTime.now(),"yyyy-MM-dd");
+        redisTemplate.opsForZSet().incrementScore(key, diseaseName, 1);
         return Result.success(searchDisease);
     }
 
@@ -113,6 +116,8 @@ public class SearchResultServiceImpl implements SearchResultService {
         highLight(articles);
 
         SearchResult searchMirna =  new SearchResult(num,ArticleUtils.ArticleListToDto(articles));
+        String key = PrefixUtils.ArticleMiRNARecordKey + LocalDateTimeUtil.format(LocalDateTime.now(),"yyyy-MM-dd");
+        redisTemplate.opsForZSet().incrementScore(key,mirnaName,1);
         return Result.success(searchMirna);
     }
 }

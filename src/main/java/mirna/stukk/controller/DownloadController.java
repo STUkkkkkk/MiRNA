@@ -14,10 +14,7 @@ import mirna.stukk.service.ArticleService;
 import mirna.stukk.service.CalculateService;
 import mirna.stukk.service.PredictionService;
 import mirna.stukk.service.RelationshipService;
-import mirna.stukk.utils.DoiUtils;
-import mirna.stukk.utils.ExcelUtils;
-import mirna.stukk.utils.PdfUtil;
-import mirna.stukk.utils.StringToListUtils;
+import mirna.stukk.utils.*;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
@@ -31,6 +28,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @Author: stukk
@@ -53,6 +51,7 @@ public class DownloadController {
     private CalculateService calculateService;
 
     @PostMapping("/GetArticleList")
+    @LimitAPI
     @ApiOperation("用Excel导出论文多篇论文的数据")
     public void downloadExcelArticle(@RequestBody List<ArticleDTO> articleDTOList, HttpServletResponse response) throws Exception {
         // 加载 Excel 模板文件
@@ -74,7 +73,9 @@ public class DownloadController {
         else{
             sheet = workbook.getSheetAt(0);
         }
-
+        List<Long> pmids = articleDTOList.stream().map(ArticleDTO::getPmid).collect(Collectors.toList()); //获取干净的论文数据
+        List<Article> articleList = articleService.getByPmids(pmids);
+        articleDTOList = ArticleUtils.ArticleListToDto(articleList);
         // 更新 Excel 数据
         ExcelUtils.insertArticleList(sheet, articleDTOList);
         // 生成下载文件
@@ -92,6 +93,7 @@ public class DownloadController {
     }
     
     @GetMapping("/GetOneArticle/{pmid}")
+    @LimitAPI
     @ApiOperation("下载单篇论文的pdf")
     public void downLoadArticle(@PathVariable Long pmid , HttpServletResponse response) throws IOException {
 
@@ -135,6 +137,7 @@ public class DownloadController {
     }
 
     @GetMapping("/GetRelationShipByMiRNA")
+    @LimitAPI
     @ApiOperation("通过mirna获取关系并下载")
     public void GetRelationShipByMiRNA(@RequestParam String mirnaName,HttpServletResponse response) throws IOException {
 
@@ -173,6 +176,7 @@ public class DownloadController {
 
 
     @GetMapping("/GetRelationShipByDisease")
+    @LimitAPI
     @ApiOperation("通过疾病获取关系并下载")
     public void GetRelationShipByDisease(@RequestParam String diseaseName,HttpServletResponse response) throws IOException {
         List<RelationShip> relationShipList = relationshipService.query().eq("disease_name", diseaseName).list();
@@ -209,6 +213,7 @@ public class DownloadController {
 
 
     @GetMapping("/GetCalculateByMiRNA")
+    @LimitAPI
     @ApiOperation("通过MiRNA获取预测关系并下载")
     public void GetCalculateByMiRNA(@RequestParam String mirnaName,HttpServletResponse response) throws IOException {
         List<Calculate> calculateList = calculateService.query().eq("mirna", mirnaName).list();
@@ -243,6 +248,7 @@ public class DownloadController {
     }
 
     @GetMapping("/GetCalculateByDisease")
+    @LimitAPI
     @ApiOperation("通过Disease获取预测关系并下载")
     public void GetCalculateByDisease(@RequestParam String diseaseName,HttpServletResponse response) throws IOException {
         List<Calculate> calculateList = calculateService.query().eq("disease", diseaseName).list();

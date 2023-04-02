@@ -7,6 +7,7 @@ import mirna.stukk.Pojo.DTO.ArticleDTO;
 import mirna.stukk.Pojo.SearchResult;
 import mirna.stukk.config.Result;
 import mirna.stukk.service.ArticleService;
+import mirna.stukk.utils.LimitAPI;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,6 +24,7 @@ public class ArticleController {
     private ArticleService articleService;
 
     @GetMapping("/like")
+    @LimitAPI(limit = 2,second = 10)
     @ApiOperation("类似百度检索全部论文，根据message 来检索所有有关message的论文")
     public Result<SearchResult> getByLike(@RequestParam String message, @RequestParam Integer pageNum, @RequestParam Integer pageSize) throws Exception {
         return articleService.getByLike(message,pageNum,pageSize);

@@ -17,4 +17,6 @@ public interface ArticleService extends IService<Article> {
     Result<SearchResult> getByLike(String message, Integer pageNum, Integer pageSize) throws Exception;
 
     Result<ArticleDTO> getByPmid(Long pmid)  throws IOException;
+
+    List<Article> getByPmids(List<Long> pmids);
 }

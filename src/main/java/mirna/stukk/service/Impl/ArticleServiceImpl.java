@@ -158,4 +158,10 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper,Article> imple
         Article article = this.getById(pmid);
         return Result.success(ArticleUtils.ArticleToDto(article));
     }
+
+    @Override
+    public List<Article> getByPmids(List<Long> pmids) {
+        List<Article> articles = articleMapper.selectBatchIds(pmids);
+        return articles;
+    }
 }
