@@ -28,6 +28,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @Author: stukk
@@ -72,7 +73,9 @@ public class DownloadController {
         else{
             sheet = workbook.getSheetAt(0);
         }
-
+        List<Long> pmids = articleDTOList.stream().map(ArticleDTO::getPmid).collect(Collectors.toList()); //获取干净的论文数据
+        List<Article> articleList = articleService.getByPmids(pmids);
+        articleDTOList = ArticleUtils.ArticleListToDto(articleList);
         // 更新 Excel 数据
         ExcelUtils.insertArticleList(sheet, articleDTOList);
         // 生成下载文件

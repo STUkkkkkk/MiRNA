@@ -20,10 +20,8 @@ import org.springframework.web.bind.annotation.*;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Date;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @Author: stukk
@@ -41,7 +39,7 @@ public class RecordController {
 
     @GetMapping("/getTodayMiRNATopN/{n}")
     @ApiOperation("获取日榜（今日）搜索mirna结构的前N排名的mirna名字")
-    public Result<List<RecordDTO>> getTopMiRNA(@PathVariable Long n){
+    public Result<Map<String,Object>> getTopMiRNA(@PathVariable Long n){
         if(n < 1){
             return Result.error("555","获取的排名小于1，没意义");
         }
@@ -61,14 +59,22 @@ public class RecordController {
             recordDTO.setTimes(o.getLongValue("score"));
             recordDTOList.add(recordDTO);
         }
-        return Result.success(recordDTOList);
+        return Result.success(change(recordDTOList));
     }
 
+    private Map<String,Object> change(List<RecordDTO> recordDTOList){
+        Map<String,Object> map = new HashMap<>();
+        List<String> searchName = recordDTOList.stream().map(RecordDTO::getSearchName).collect(Collectors.toList());
+        List<Long >times = recordDTOList.stream().map(RecordDTO::getTimes).collect(Collectors.toList());
+        map.put("searchName",searchName);
+        map.put("times",times);
+        return map;
+    }
 
 
     @GetMapping("/getWeekMiRNATopN/{n}")
     @ApiOperation("获取周榜（本周）搜索mirna结构的前N排名的mirna名字")
-    public Result<List<RecordDTO>> getWeekMiRNATopN(@PathVariable Long n){
+    public Result<Map<String,Object>> getWeekMiRNATopN(@PathVariable Long n){
         if(n < 1){
             return Result.error("555","获取的排名小于1，没意义");
         }
@@ -94,12 +100,12 @@ public class RecordController {
             recordDTO.setTimes(o.getLongValue("score"));
             recordDTOList.add(recordDTO);
         }
-        return Result.success(recordDTOList);
+        return Result.success(change(recordDTOList));
     }
 
     @GetMapping("/getMonthMiRNATopN/{n}")
     @ApiOperation("获取月榜（本月）搜索mirna结构的前N排名的mirna名字")
-    public Result<List<RecordDTO>> getMonthMiRNATopN(@PathVariable Long n){
+    public Result<Map<String,Object>> getMonthMiRNATopN(@PathVariable Long n){
         if(n < 1){
             return Result.error("555","获取的排名小于1，没意义");
         }
@@ -125,14 +131,14 @@ public class RecordController {
             recordDTO.setTimes(o.getLongValue("score"));
             recordDTOList.add(recordDTO);
         }
-        return Result.success(recordDTOList);
+        return Result.success(change(recordDTOList));
     }
 //------------------------Article:MiRNA------------------------------------
 
 
     @GetMapping("/getTodayArticleMiRNATopN/{n}")
     @ApiOperation("获取日榜（今日）搜索文章的mirna的前N排名的mirna名字")
-    public Result<List<RecordDTO>> getTodayArticleMiRNATopN(@PathVariable Long n){
+    public Result<Map<String,Object>> getTodayArticleMiRNATopN(@PathVariable Long n){
         if(n < 1){
             return Result.error("555","获取的排名小于1，没意义");
         }
@@ -152,14 +158,14 @@ public class RecordController {
             recordDTO.setTimes(o.getLongValue("score"));
             recordDTOList.add(recordDTO);
         }
-        return Result.success(recordDTOList);
+        return Result.success(change(recordDTOList));
     }
 
 
 
     @GetMapping("/getWeekArticleMiRNATopN/{n}")
     @ApiOperation("获取周榜（本周）搜索文章页面的mirna的前N排名的mirna名字")
-    public Result<List<RecordDTO>> getWeekArticleMiRNATopN(@PathVariable Long n){
+    public Result<Map<String,Object>> getWeekArticleMiRNATopN(@PathVariable Long n){
         if(n < 1){
             return Result.error("555","获取的排名小于1，没意义");
         }
@@ -185,12 +191,12 @@ public class RecordController {
             recordDTO.setTimes(o.getLongValue("score"));
             recordDTOList.add(recordDTO);
         }
-        return Result.success(recordDTOList);
+        return Result.success(change(recordDTOList));
     }
 
     @GetMapping("/getMonthArticleMiRNATopN/{n}")
     @ApiOperation("获取月榜（本月）搜索文章页面的mirna的前N排名的mirna名字")
-    public Result<List<RecordDTO>> getMonthArticleMiRNATopN(@PathVariable Long n){
+    public Result<Map<String,Object>> getMonthArticleMiRNATopN(@PathVariable Long n){
         if(n < 1){
             return Result.error("555","获取的排名小于1，没意义");
         }
@@ -216,14 +222,14 @@ public class RecordController {
             recordDTO.setTimes(o.getLongValue("score"));
             recordDTOList.add(recordDTO);
         }
-        return Result.success(recordDTOList);
+        return Result.success(change(recordDTOList));
     }
     //------------------------Article:Disease------------------------------------
 
 
     @GetMapping("/getTodayArticleDiseaseTopN/{n}")
     @ApiOperation("获取日榜（今日）搜索文章的疾病的前N排名的疾病名字")
-    public Result<List<RecordDTO>> getTodayArticleDiseaseTopN(@PathVariable Long n){
+    public Result<Map<String,Object>> getTodayArticleDiseaseTopN(@PathVariable Long n){
         if(n < 1){
             return Result.error("555","获取的排名小于1，没意义");
         }
@@ -243,14 +249,14 @@ public class RecordController {
             recordDTO.setTimes(o.getLongValue("score"));
             recordDTOList.add(recordDTO);
         }
-        return Result.success(recordDTOList);
+        return Result.success(change(recordDTOList));
     }
 
 
 
     @GetMapping("/getWeekArticleDiseaseTopN/{n}")
     @ApiOperation("获取周榜（本周）搜索文章页面的疾病的前N排名的疾病名字")
-    public Result<List<RecordDTO>> getWeekArticleDiseaseTopN(@PathVariable Long n){
+    public Result<Map<String,Object>> getWeekArticleDiseaseTopN(@PathVariable Long n){
         if(n < 1){
             return Result.error("555","获取的排名小于1，没意义");
         }
@@ -276,12 +282,12 @@ public class RecordController {
             recordDTO.setTimes(o.getLongValue("score"));
             recordDTOList.add(recordDTO);
         }
-        return Result.success(recordDTOList);
+        return Result.success(change(recordDTOList));
     }
 
     @GetMapping("/getMonthArticleDiseaseTopN/{n}")
     @ApiOperation("获取月榜（本月）搜索文章页面的疾病的前N排名的疾病名字")
-    public Result<List<RecordDTO>> getMonthArticleDiseaseTopN(@PathVariable Long n){
+    public Result<Map<String,Object>> getMonthArticleDiseaseTopN(@PathVariable Long n){
         if(n < 1){
             return Result.error("555","获取的排名小于1，没意义");
         }
@@ -307,7 +313,7 @@ public class RecordController {
             recordDTO.setTimes(o.getLongValue("score"));
             recordDTOList.add(recordDTO);
         }
-        return Result.success(recordDTOList);
+        return Result.success(change(recordDTOList));
     }
 }
 /*
