@@ -50,8 +50,8 @@ spring:
     protocol: smtp  #邮件协议
     host: smtp.163.com
     port: 25
-    username: stukk123@163.com
-    password: DWHCIBOXIXQMMZMP  #授权码
+    username: 私人信息
+    password: 私人信息  #授权码
     default-encoding: UTF-8
     properties:
       mail:
@@ -64,14 +64,14 @@ mybatis-plus:
 
 stukk:
   elasticsearch:
-    host: 1.117.1.150:9200
-    username: elastic
-    password: xp908098
+    host: 私人信息
+    username: 私人信息
+    password: 私人信息
     connectTimeout: 50000
     socketTimeout: 50000
     connectionRequestTimeout: 10000
     maxConnectNum: 100
     maxConnectPerRoute: 100
 
-FromEmail: stukk123@163.com
-ToEmail: 20ywhu@stu.edu.cn
+FromEmail: 私人信息
+ToEmail: 私人信息
