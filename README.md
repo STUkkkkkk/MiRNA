@@ -23,4 +23,4 @@ The following guides illustrate how to use some features concretely:
 
 
 ### 由于项目保密原因，数据库内容不上传 只保留结构
-打开dev配置文件，将mysql、Redis、es、mail配置成自己的账号密码就可以运行了
+打开dev配置文件，将mysql、Redis、es、mail、RabbitMQ配置成自己的账号密码就可以运行了
