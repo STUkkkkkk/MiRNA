@@ -3,6 +3,7 @@ package mirna.stukk.utils;
 import mirna.stukk.Pojo.Article;
 import mirna.stukk.Pojo.Calculate;
 import mirna.stukk.Pojo.DTO.ArticleDTO;
+import mirna.stukk.Pojo.DTO.MirnaRelationDTO;
 import mirna.stukk.Pojo.Prediction;
 import mirna.stukk.Pojo.RelationShip;
 import org.apache.poi.ss.usermodel.Cell;
@@ -156,4 +157,26 @@ public class ExcelUtils {
         insertCell(row,lie++,calculate.getProved().toString());
         insertCell(row , lie ,calculate.getForecastRelevance().toString());
     }
+
+    public static void insertMirnaRelationship(Sheet sheet, List<MirnaRelationDTO> mirnaRelationDTOList) {
+        int pi = 2;
+        for(MirnaRelationDTO mirnaRelationDTO : mirnaRelationDTOList){
+            Row row = sheet.getRow(pi);
+            if(row == null){
+                row = sheet.createRow(pi);
+            }
+            insertMirnaRelationDTO(row, mirnaRelationDTO);
+            pi++;
+        }
+    }
+
+    private static void insertMirnaRelationDTO(Row row, MirnaRelationDTO mirnaRelationDTO) {
+        int lie = 0;
+        insertCell(row, lie++ ,mirnaRelationDTO.getMirnaName() == null ? "": mirnaRelationDTO.getMirnaName());
+        insertCell(row, lie++ , mirnaRelationDTO.getDisease() == null ? "" : mirnaRelationDTO.getDisease());
+        insertCell(row, lie++ , mirnaRelationDTO.getResource() == null ? "": mirnaRelationDTO.getResource());
+        insertCell(row, lie++ , mirnaRelationDTO.getPmid() == null ? "" : mirnaRelationDTO.getPmid().toString());
+        insertCell(row, lie , mirnaRelationDTO.getRelevance() == null ? "":mirnaRelationDTO.getRelevance().toString());
+    }
+
 }

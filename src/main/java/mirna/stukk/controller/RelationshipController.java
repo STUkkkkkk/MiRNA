@@ -2,18 +2,20 @@ package mirna.stukk.controller;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import mirna.stukk.Pojo.DTO.MirnaRelationDTO;
 import mirna.stukk.Pojo.Diagram;
+import mirna.stukk.Pojo.search.MirnaRelationSearch;
+import mirna.stukk.Pojo.search.MirnaRelationshipData;
 import mirna.stukk.config.Result;
 import mirna.stukk.service.RelationshipService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/relation")
-@Api(tags = "关系图获取接口")
+@Api(tags = "关系数据、关系图获取接口")
 public class RelationshipController {
 
     @Autowired
@@ -35,6 +37,11 @@ public class RelationshipController {
     }
 
 
+    @PostMapping("/getMirnaRelationshipData")
+    @ApiOperation("根据多种查询条件查询到Mirna-Disease关系")
+    public Result<MirnaRelationshipData> getMirnaRelationshipData(@RequestBody MirnaRelationSearch mirnaRelationSearch){
+        return relationshipService.getMirnaRelationshipData(mirnaRelationSearch);
+    }
 
 
 

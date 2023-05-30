@@ -8,8 +8,13 @@ import io.swagger.annotations.ApiOperation;
 import mirna.stukk.Pojo.Article;
 import mirna.stukk.Pojo.Calculate;
 import mirna.stukk.Pojo.DTO.ArticleDTO;
+import mirna.stukk.Pojo.DTO.MirnaRelationDTO;
+import mirna.stukk.Pojo.DTO.PredictionDTO;
+import mirna.stukk.Pojo.MirnaRelationDownload;
 import mirna.stukk.Pojo.RelationShip;
 import mirna.stukk.config.Result;
+import mirna.stukk.mapper.PredictionMapper;
+import mirna.stukk.mapper.RelationshipMapper;
 import mirna.stukk.service.ArticleService;
 import mirna.stukk.service.CalculateService;
 import mirna.stukk.service.PredictionService;
@@ -25,8 +30,10 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -49,6 +56,10 @@ public class DownloadController {
 
     @Autowired
     private CalculateService calculateService;
+    @Autowired
+    private RelationshipMapper relationshipMapper;
+    @Autowired
+    private PredictionMapper predictionMapper;
 
     @PostMapping("/GetArticleList")
     @LimitAPI
@@ -281,6 +292,93 @@ public class DownloadController {
         outputStream.close();
         workbook.close();
     }
+
+    @PostMapping("/getMirnaRelationship")
+    @LimitAPI
+    @ApiOperation("通过Disease获取预测关系并下载")
+    public void getMirnaRelationshipData(@RequestBody MirnaRelationDownload mirnaRelationDownload, HttpServletResponse response ) throws IOException {
+        List<String> mirnas = mirnaRelationDownload.getMirnas();
+        List<String> diseases = mirnaRelationDownload.getDiseases();
+        Integer downloadType = mirnaRelationDownload.getDownloadType();
+        Double maxRelevance = mirnaRelationDownload.getMaxRelevance();
+        Integer resource = mirnaRelationDownload.getResource();
+        Double minRelevance = mirnaRelationDownload.getMinRelevance();
+        Integer row = mirnaRelationDownload.getRow();
+        if(minRelevance > maxRelevance){
+            throw new BaseException("5001","查询参数错误,选择的最小关联度大于最大关联度");
+        }
+        if(mirnas != null && mirnas.size() > 10 || diseases != null &&  diseases.size() > 10){
+            throw new BaseException("5001","查询mirna、disease数量过多，请重试");
+        }
+        List<MirnaRelationDTO> mirnaRelationDTOList = new LinkedList<>();
+        int total = 0;
+        int num1 = 0;
+        int num2 = row;
+        if(resource == 1){
+            //已证实
+            List<Object> objects = relationshipMapper.getByMessage(mirnas, diseases,num1, num2);
+            if(objects == null){
+                Result.success();
+            }
+            total = ((List<Integer>)objects.get(1)).get(0);
+            List<RelationShip> relationShipList = ((List<RelationShip>)objects.get(0));
+            for(RelationShip relationShip : relationShipList){
+                MirnaRelationDTO mirnaRelationDTO = MirnaRelationDTO.builder().pmid(null).mirnaName(relationShip.getMirnaName())
+                        .disease(relationShip.getDiseaseName()).relevance(1.0).resource(CommonUtil.HMDD).pmid(relationShip.getPmid()).build();
+                mirnaRelationDTOList.add(mirnaRelationDTO);
+            }
+        }
+        else{
+//            未证实,预测的
+            List<Object> objects = predictionMapper.getPredictionDTO(mirnas, diseases,minRelevance,maxRelevance,num1, num2);
+            if(objects == null){
+                throw new BaseException("50010","下载失败");
+            }
+            total = ((List<Integer>) objects.get(1)).get(0);
+            List<PredictionDTO> predictionDTOList = (List<PredictionDTO>) objects.get(0);
+            for(PredictionDTO predictionDTO : predictionDTOList){
+                MirnaRelationDTO mirnaRelationDTO = MirnaRelationDTO.builder().pmid(null).mirnaName(predictionDTO.getMirna())
+                        .disease(predictionDTO.getDisease()).resource(CommonUtil.PM).relevance(predictionDTO.getForecastRelevance()).build();
+                mirnaRelationDTOList.add(mirnaRelationDTO);
+            }
+        }
+        if(downloadType == 0){
+            String template = "templates/Mirna-Disease-Pmid数据模板.xlsx";
+            InputStream inputStream = this.getClass().getClassLoader().getResourceAsStream(template);
+            Workbook workbook = new SXSSFWorkbook(new XSSFWorkbook(inputStream));
+            Sheet sheet ;
+            if(workbook instanceof SXSSFWorkbook){
+                sheet = ((SXSSFWorkbook) workbook).getXSSFWorkbook().getSheetAt(0);
+            }
+            else{
+                sheet = workbook.getSheetAt(0);
+            }
+            int hang = 2; //从第3行开始
+            ExcelUtils.insertMirnaRelationship(sheet,mirnaRelationDTOList); //插入excel数据模板中
+            response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+            response.setHeader("Content-Disposition", "attachment; filename=\"data.xlsx\"");
+            response.setHeader("Pragma", "no-cache");
+            response.setHeader("Cache-Control", "no-cache");
+            response.setDateHeader("Expires", 0);
+
+            ServletOutputStream outputStream = response.getOutputStream();
+            workbook.write(outputStream);
+            outputStream.flush();
+            outputStream.close();
+            workbook.close();
+        }
+        else if(downloadType == 1){
+//            下载csv文件：
+            response.setCharacterEncoding("utf-8");
+            response.setContentType("multipart/form-data");
+            response.setHeader("Content-Disposition", "attachment;fileName=download.csv");
+//            还没好
+        }
+    }
+
+
+
+
 
 
 }

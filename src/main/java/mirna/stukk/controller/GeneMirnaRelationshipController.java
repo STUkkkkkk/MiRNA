@@ -41,7 +41,12 @@ public class GeneMirnaRelationshipController {
     @GetMapping("/getAllMiRNA")
     @ApiOperation("获取全部可以用来搜索MiRNA-基因的MiRNA名字")
     public Result<List<MiRNA>> getAllMiRNA(){
-        List<MiRNA> searchMiRNA = mirnaMapper.getAllSearchMiRNA();
+        List<MiRNA> searchMiRNA = new LinkedList<>();
+        List<String> mirnaNameList =  mirnaMapper.getAllSearchMiRNA();
+        Long pi = 0L;
+        for(String mirnaName : mirnaNameList){
+            searchMiRNA.add(MiRNA.builder().id(pi++).name(mirnaName).build());
+        }
         return Result.success(searchMiRNA);
     }
 
@@ -58,7 +63,7 @@ public class GeneMirnaRelationshipController {
         if(mirnaName == null){
             return Result.error("555","查无关系");
         }
-        List<GeneMirnaRelationship> geneMirnaRelationships = geneMirnaRelationshipService.query().eq("mirna_name", mirnaName).list();
+        List<GeneMirnaRelationship> geneMirnaRelationships = geneMirnaRelationshipService.GetByMirnaName(mirnaName);
         if(geneMirnaRelationships == null){
             return Result.success(null);
         }

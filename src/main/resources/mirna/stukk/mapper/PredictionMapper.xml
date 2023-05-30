@@ -22,4 +22,36 @@
                 disease_id = (select id from tb_disease where disease_name = #{diseaseName})
              limit #{random},7;
     </select>
+
+    <resultMap id="PredictionDTO" type="mirna.stukk.Pojo.DTO.PredictionDTO"/>
+    <resultMap id="PredictionDTOCount" type="int"/>
+
+    <select id="getPredictionDTO" resultMap="PredictionDTO,PredictionDTOCount" resultType="object">
+        select SQL_CALC_FOUND_ROWS * from tb_prediction
+        <where>
+            <if test="mirnas != null and mirnas.size() > 0">
+                mirna in
+                <foreach collection="mirnas" item="mirna" separator="," open="(" close=")">
+                 #{mirna}
+                </foreach>
+            </if>
+            <if test="mirnas != null and mirnas.size() > 0 and diseases != null and diseases.size() > 0">
+                and
+            </if>
+            <if test="diseases != null and diseases.size() > 0">
+                disease in
+                <foreach collection="diseases" item="disease" separator="," open="(" close=")">
+                    #{disease}
+                </foreach>
+            </if>
+            <if test="(mirnas != null and mirnas.size() > 0 or diseases != null and diseases.size() > 0) and minRelevance != null and maxRelevance != null">
+                and
+            </if>
+            <if test="minRelevance != null and maxRelevance != null">
+                forecast_relevance between #{minRelevance} and #{maxRelevance}
+            </if>
+        </where>
+        limit #{pageNum},#{pageSize};
+        select FOUND_ROWS();
+    </select>
 </mapper>

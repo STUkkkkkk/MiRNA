@@ -46,9 +46,14 @@ public class redisTest {
 
 
 
+    @Test
+    public void newRedisTest(){
+        redisTemplate.opsForValue().set("1111","11111");
+        System.out.println("插入成功");
+    }
 
     @Test
-    public void testRedis(){
+    public void ArticletestRedis(){ //redispull进入 artice
 //        redisTemplate.opsForHash().put("articles","1001","disease,fuck");
 //        redisTemplate.opsForHash().put("articles","1003","stukk");
 //        List<String> list = new LinkedList<>();
@@ -86,7 +91,7 @@ public class redisTest {
                 }
             }
         }
-        redisTemplate.opsForHash().putAll("articles",result);
+//        redisTemplate.opsForHash().putAll("articles",result);
     }
 
     @Test

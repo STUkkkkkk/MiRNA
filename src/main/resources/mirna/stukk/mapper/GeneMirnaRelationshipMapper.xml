@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybits.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="mirna.stukk.mapper.GeneMirnaRelationshipMapper">
+
+    <select id="GetByMirnaName" resultType="mirna.stukk.Pojo.GeneMirnaRelationship">
+        select * from gene_mirna where mirna_name = #{mirnaName} limit 800;
+    </select>
+</mapper>

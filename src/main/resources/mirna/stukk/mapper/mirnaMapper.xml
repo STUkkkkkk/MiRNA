@@ -3,9 +3,12 @@
         PUBLIC "-//mybits.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="mirna.stukk.mapper.MirnaMapper">
+    <insert id="save2D3D">
+        insert into mirna_2d_3d(mirna_name,url) value (#{replace}, #{name});
+    </insert>
 
-    <select id="getAllSearchMiRNA" resultType="mirna.stukk.Pojo.MiRNA">
-        select id,mirna_name as name from search_mirna;
+    <select id="getAllSearchMiRNA" resultType="String">
+        select mirna_name from search_mirna UNION select mirna_name from tb_mirna;
     </select>
     <select id="getLikeMiRNA" resultType="mirna.stukk.Pojo.MiRNA">
         select id,mirna_name as name from search_mirna where mirna_name like #{mirnaName};
