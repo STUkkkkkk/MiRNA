@@ -1,7 +1,6 @@
 package mirna.stukk.config;
 
 
-import com.alibaba.fastjson.JSON;
 import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
@@ -68,32 +67,6 @@ public class elastiSearchConfig {
      */
     @Value("${stukk.elasticsearch.maxConnectPerRoute}")
     private int maxConnectPerRoute;
-
-
-//
-//    @Bean
-//    public RestHighLevelClient restHighLevelClient(){
-//        RestHighLevelClient client = new RestHighLevelClient(
-//                RestClient.builder(
-//                        new HttpHost(esPath,Integer.parseInt(esPort),"http")
-//                ).setRequestConfigCallback(new RestClientBuilder.RequestConfigCallback() {
-//                    @Override
-//                    public RequestConfig.Builder customizeRequestConfig(RequestConfig.Builder requestConfigBuilder) {
-//                        return requestConfigBuilder.setConnectTimeout(90000000)//25hours
-//                                .setSocketTimeout(90000000);
-//                    }
-//                }).setHttpClientConfigCallback((httpAsyncClientBuilder -> {
-//                    httpAsyncClientBuilder.disableAuthCaching();//禁用身份验证缓存
-//                    //显式设置keepAliveStrategy
-//                    httpAsyncClientBuilder.setKeepAliveStrategy((httpResponse,httpContext) -> TimeUnit.MINUTES.toMillis(3));
-//                    //显式开启tcp keepalive
-//                    httpAsyncClientBuilder.setDefaultIOReactorConfig(IOReactorConfig.custom().setSoKeepAlive(true).build());
-//                    return httpAsyncClientBuilder;
-//                }))
-//        );
-//        return client;
-//    }
-
 
     @Bean(destroyMethod = "close")
     public RestHighLevelClient restHighLevelClient(){

@@ -8,7 +8,9 @@ import java.util.List;
 
 @Mapper
 public interface MirnaMapper extends BaseMapper<MiRNA> {
-    List<MiRNA> getAllSearchMiRNA();
+    List<String> getAllSearchMiRNA();
 
     List<MiRNA> getLikeMiRNA(String mirnaName);
+
+    void save2D3D(String replace, String name);
 }

@@ -47,8 +47,35 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper,Article> imple
         return k_articles;
     }
 
+    private boolean isNumber(String message){
+        for(int i = 0;i<message.length();i++){
+            if(message.charAt(i) > '9' || message.charAt(i) < '0'){
+                return false;
+            }
+        }
+        return true;
+    }
+
     @Override
     public Result<SearchResult> getByLike(String message, Integer pageNum, Integer pageSize) throws Exception {
+
+        if(message == null){
+            return Result.error("555","输入数据为空，查询失败");
+        }
+        if(isNumber(message)){
+            //是数字的话判断一下是不是查的pmid
+            Long pmid = Long.parseLong(message);
+            Article article = articleMapper.selectById(pmid);
+            List<ArticleDTO> articleDTOList = new LinkedList<>();
+            if(article != null){
+                //有论文，直接出论文
+                articleDTOList.add(ArticleUtils.ArticleToDto(article));
+                return Result.success(SearchResult.builder().count(1).articles(articleDTOList).build());
+            }
+        }
+
+
+
         SearchRequest searchRequest = new SearchRequest("article"); //构建查询请求
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
         searchSourceBuilder.query(QueryBuilders.multiMatchQuery(message, "title","abs"));

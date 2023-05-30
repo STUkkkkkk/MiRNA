@@ -1,8 +1,13 @@
 package mirna.stukk.service.Impl;
 
+import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import io.swagger.models.auth.In;
 import mirna.stukk.Pojo.*;
+import mirna.stukk.Pojo.DTO.MirnaRelationDTO;
+import mirna.stukk.Pojo.DTO.PredictionDTO;
+import mirna.stukk.Pojo.search.MirnaRelationSearch;
+import mirna.stukk.Pojo.search.MirnaRelationshipData;
 import mirna.stukk.config.Result;
 import mirna.stukk.mapper.MirnaMapper;
 import mirna.stukk.mapper.PredictionMapper;
@@ -10,6 +15,8 @@ import mirna.stukk.mapper.RelationshipMapper;
 import mirna.stukk.service.DiseaseService;
 import mirna.stukk.service.MirnaService;
 import mirna.stukk.service.RelationshipService;
+import mirna.stukk.utils.BaseException;
+import mirna.stukk.utils.CommonUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -152,6 +159,66 @@ public class RelationshipServiceImpl extends ServiceImpl<RelationshipMapper,Rela
         categories.add(new Category("预测的相关联的疾病")); //加入预测第三层
         //---------进行预测点的加入----------------
         return Result.success(Diagram.builder().links(links).nodes(nodes).categories(categories).build());
+    }
+
+    /*
+     * 查询下载页的内容
+     * @Param 
+     * @return 
+     * @author stukk
+     * @create 2023-05-29
+     **/
+    @Override
+    public Result<MirnaRelationshipData> getMirnaRelationshipData(MirnaRelationSearch mirnaRelationSearch) {
+        //查询Mirna
+        List<String> mirnas = mirnaRelationSearch.getMirnas();
+        List<String> diseases = mirnaRelationSearch.getDiseases();
+        if(mirnas != null && mirnas.size() > 10 || diseases != null &&  diseases.size() > 10){
+            throw new BaseException("5001","查询mirna、disease数量过多，请重试");
+        }
+        Integer pageNum = mirnaRelationSearch.getPageNum();
+        Integer pageSize = mirnaRelationSearch.getPageSize();
+        Integer resource = mirnaRelationSearch.getResource();
+        Double minRelevance = mirnaRelationSearch.getMinRelevance();
+        Double maxRelevance = mirnaRelationSearch.getMaxRelevance();
+        if(minRelevance > maxRelevance){
+            throw new BaseException("5001","查询参数错误,选择的最小关联度大于最大关联度");
+        }
+        List<MirnaRelationDTO> mirnaRelationDTOList = new LinkedList<>();
+        int total = 0;
+        int num1 = (pageNum - 1) * pageSize;
+        int num2 = pageSize;
+        if(resource == 1){
+            //已证实
+            List<Object> objects = relationshipMapper.getByMessage(mirnas, diseases,num1, num2);
+            if(objects == null){
+                Result.success();
+            }
+            total = ((List<Integer>)objects.get(1)).get(0);
+            List<RelationShip> relationShipList = ((List<RelationShip>)objects.get(0));
+            for(RelationShip relationShip : relationShipList){
+                MirnaRelationDTO mirnaRelationDTO = MirnaRelationDTO.builder().pmid(null).mirnaName(relationShip.getMirnaName())
+                        .disease(relationShip.getDiseaseName()).relevance(1.0).resource(CommonUtil.HMDD).pmid(relationShip.getPmid()).build();
+                mirnaRelationDTOList.add(mirnaRelationDTO);
+            }
+        }
+        else{
+//            未证实,预测的
+            List<Object> objects = predictionMapper.getPredictionDTO(mirnas, diseases,minRelevance,maxRelevance,num1, num2);
+            if(objects == null){
+                return Result.success();
+            }
+            total = ((List<Integer>) objects.get(1)).get(0);
+            List<PredictionDTO> predictionDTOList = (List<PredictionDTO>) objects.get(0);
+            for(PredictionDTO predictionDTO : predictionDTOList){
+                MirnaRelationDTO mirnaRelationDTO = MirnaRelationDTO.builder().pmid(null).mirnaName(predictionDTO.getMirna())
+                        .disease(predictionDTO.getDisease()).resource(CommonUtil.PM).relevance(predictionDTO.getForecastRelevance()).build();
+                mirnaRelationDTOList.add(mirnaRelationDTO);
+            }
+        }
+        MirnaRelationshipData mirnaRelationshipData = MirnaRelationshipData.builder().total(total).pageNum(pageNum).pageSize(pageSize)
+                .mirnaRelationDTOList(mirnaRelationDTOList).build();
+        return Result.success(mirnaRelationshipData);
     }
 
     private int AddDiseasePrediction(Integer id, String mirnaName, int cat, List<Node> nodes, List<Link> links, Long disease_id) {

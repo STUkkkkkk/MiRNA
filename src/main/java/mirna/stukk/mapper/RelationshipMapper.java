@@ -27,7 +27,6 @@ public interface RelationshipMapper extends BaseMapper<RelationShip> {
 
     List<Relationship_mirna> getRelationshipMirnaList();
 
-
-
+    List<Object> getByMessage(List<String> mirnas, List<String> diseases, Integer pageNum, Integer pageSize);
 
 }

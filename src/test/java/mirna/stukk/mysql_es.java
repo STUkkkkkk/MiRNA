@@ -55,7 +55,7 @@ public class mysql_es {
 
     @Test
     public void testDay() {
-        System.out.println(       articleService.getByLimit(1,10));
+        System.out.println(articleService.getByLimit(1,10));
     }
 
     @Test

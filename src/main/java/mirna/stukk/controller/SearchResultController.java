@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/search")
 @Api(tags = "精确查询获取论文接口")
@@ -30,5 +32,7 @@ public class SearchResultController {
     public Result<SearchResult> GetByMirna(@RequestParam Integer pageNum, @RequestParam String mirnaName , @RequestParam String startTime, @RequestParam String endTime,@RequestParam Integer pageSize){
         return searchResultService.getByMirna(pageNum,mirnaName,startTime,endTime,pageSize);
     }
+
+
 
 }

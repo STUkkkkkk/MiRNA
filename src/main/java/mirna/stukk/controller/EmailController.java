@@ -1,10 +1,12 @@
 package mirna.stukk.controller;
 
+import com.alibaba.fastjson.JSON;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import mirna.stukk.Pojo.Message;
 import mirna.stukk.config.Result;
 import mirna.stukk.service.MessageService;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -35,6 +37,9 @@ public class EmailController {
     @Value("${ToEmail}")
     private String ToEmail;
 
+    @Autowired
+    private RabbitTemplate rabbitTemplate;
+
     @PostMapping("/sendMessage")
     @ApiOperation(value = "发送用户的留言信息")
     public Result<Boolean> sendMessage(@RequestBody Message message){
@@ -47,7 +52,8 @@ public class EmailController {
         if(!messageService.isEmail(email)){
             return Result.error("555","邮箱错误");
         }
-        messageService.send(message, FromEmail, ToEmail);
+        rabbitTemplate.convertAndSend("email","message", JSON.toJSONString(message));
+//
         return Result.success(true);
     }
 
