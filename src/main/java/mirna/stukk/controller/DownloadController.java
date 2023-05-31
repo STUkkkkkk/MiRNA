@@ -2,7 +2,15 @@ package mirna.stukk.controller;
 
 import cn.hutool.core.util.CharsetUtil;
 import cn.hutool.core.util.URLUtil;
+import cn.hutool.json.JSONUtil;
 import com.alibaba.fastjson.JSON;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.opencsv.CSVWriter;
+import com.opencsv.bean.ColumnPositionMappingStrategy;
+import com.opencsv.bean.StatefulBeanToCsv;
+import com.opencsv.bean.StatefulBeanToCsvBuilder;
+import com.opencsv.exceptions.CsvDataTypeMismatchException;
+import com.opencsv.exceptions.CsvRequiredFieldEmptyException;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import mirna.stukk.Pojo.Article;
@@ -12,6 +20,7 @@ import mirna.stukk.Pojo.DTO.MirnaRelationDTO;
 import mirna.stukk.Pojo.DTO.PredictionDTO;
 import mirna.stukk.Pojo.MirnaRelationDownload;
 import mirna.stukk.Pojo.RelationShip;
+import mirna.stukk.Pojo.search.MirnaRelationshipData;
 import mirna.stukk.config.Result;
 import mirna.stukk.mapper.PredictionMapper;
 import mirna.stukk.mapper.RelationshipMapper;
@@ -26,13 +35,15 @@ import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.apache.velocity.VelocityContext;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -293,55 +304,127 @@ public class DownloadController {
         workbook.close();
     }
 
+    @GetMapping(value = "/testDownload",produces = "text/csv")
+    @ApiOperation("测试使用，下载csv")
+    public void test(HttpServletResponse response) throws IOException, CsvRequiredFieldEmptyException, CsvDataTypeMismatchException {
+
+        response.setContentType("application/ms-txt.numberformat:@");
+        response.setHeader("Pragma","public");
+
+        List<MirnaRelationDTO> mirnaRelationDTOList = new LinkedList<>();
+        mirnaRelationDTOList.add(MirnaRelationDTO.builder().mirnaName("mirna").disease("disease").build());
+
+        ColumnPositionMappingStrategy mapStrategy = new ColumnPositionMappingStrategy();
+
+        mapStrategy.setType(MirnaRelationDTO.class);
+
+        //和字段名对应
+        String[] columns = new String[]{"miRNA","Disease","Resource","Pmid","Relevance"};
+        mapStrategy.setColumnMapping(columns);
+
+        StatefulBeanToCsv btcsv = new StatefulBeanToCsvBuilder(response.getWriter())
+                .withQuotechar(CSVWriter.NO_QUOTE_CHARACTER)
+                .withMappingStrategy(mapStrategy)
+                .withSeparator(',')
+                .build();
+
+        btcsv.write(mirnaRelationDTOList);
+    }
+
+    @GetMapping(value = "/export", produces = "text/csv")
+    @ApiOperation("测试使用。。。")
+    public ResponseEntity<String> exportData() throws Exception {
+        // 假设从数据库中获取的数据如下
+        List<String[]> data = new ArrayList<>();
+        data.add(new String[]{"John", "Smith", "35"});
+        data.add(new String[]{"Jane", "Doe", "25"});
+        data.add(new String[]{"Bob", "Johnson", "45"});
+        // 生成CSV文件内容
+        StringWriter writer = new StringWriter();
+        CSVWriter csvWriter = new CSVWriter(writer);
+        csvWriter.writeAll(data);
+        csvWriter.close();
+        // 设置响应头部信息
+        HttpHeaders headers = new HttpHeaders();
+        String filename = "download.csv";
+        headers.add("Content-Disposition", "attachment; filename=\"" + filename + "\"");
+        // 返回包含CSV数据的响应实体
+        return ResponseEntity
+                .ok()
+                .headers(headers)
+                .contentType(MediaType.parseMediaType("text/csv"))
+                .body(writer.toString());
+    }
+
+    @GetMapping("/exportTxt")
+    @ApiOperation("测试下载txt文件")
+    public void export(HttpServletResponse response) throws IOException {
+        List<MirnaRelationDTO> mirnaRelationDTOList = new LinkedList<>();
+        mirnaRelationDTOList.add(MirnaRelationDTO.builder().mirnaName("mirna").disease("disease").pmid(null).resource("0").relevance(0.11).build());
+
+        List<String[]> data = new ArrayList<>();
+        data.add(new String[]{"miRNA","Disease","Resource","Pmid","Relevance"});
+        for(MirnaRelationDTO mirnaRelationDTO : mirnaRelationDTOList){
+            String str[] = new String[5];
+            str[0] = mirnaRelationDTO.getMirnaName();
+            str[1] = mirnaRelationDTO.getDisease();
+            str[2] = mirnaRelationDTO.getResource();
+            str[3] = mirnaRelationDTO.getPmid() == null ? "NAN":mirnaRelationDTO.getPmid().toString();
+            str[4] = mirnaRelationDTO.getRelevance() == null ? "NAN":mirnaRelationDTO.getRelevance().toString();
+            data.add(str);
+        }
+        response.setContentType("text/plain");
+        response.setHeader("Content-Disposition", "attachment;filename=download.txt");
+        OutputStream os = response.getOutputStream();
+        BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(os));
+        for(String[] arr : data){
+            String line = "";
+            for(int i = 0;i < arr.length; i++){
+                line += arr[i];
+                if(i < arr.length - 1){
+                    line += "\t";
+                }
+            }
+            bw.write(line + "\n");
+        }
+        bw.flush();
+        bw.close();
+    }
+
+
+
+    @GetMapping("/exportJson")
+    @ApiOperation("测试下载json文件")
+    public void exportJSON(HttpServletResponse response) throws IOException {
+        List<MirnaRelationDTO> mirnaRelationDTOList = new LinkedList<>();
+        mirnaRelationDTOList.add(MirnaRelationDTO.builder().mirnaName("mirna").disease("disease").pmid(null).resource("0").relevance(0.11).build());
+        String json = JSONUtil.toJsonStr(mirnaRelationDTOList);
+        response.setContentType("application/json");
+        response.setHeader("Content-Disposition", "attachment; filename=data.json");
+        response.getWriter().write(json);
+    }
+
+
+
     @PostMapping("/getMirnaRelationship")
     @LimitAPI
-    @ApiOperation("通过Disease获取预测关系并下载")
-    public void getMirnaRelationshipData(@RequestBody MirnaRelationDownload mirnaRelationDownload, HttpServletResponse response ) throws IOException {
+    @ApiOperation("获取mirna-disease-pmid-来源数据并下载excel数据")
+    public ResponseEntity<String>  getMirnaRelationshipData(@RequestBody MirnaRelationDownload mirnaRelationDownload, HttpServletResponse response ) throws IOException {
         List<String> mirnas = mirnaRelationDownload.getMirnas();
         List<String> diseases = mirnaRelationDownload.getDiseases();
-        Integer downloadType = mirnaRelationDownload.getDownloadType();
         Double maxRelevance = mirnaRelationDownload.getMaxRelevance();
         Integer resource = mirnaRelationDownload.getResource();
         Double minRelevance = mirnaRelationDownload.getMinRelevance();
         Integer row = mirnaRelationDownload.getRow();
+        Integer downloadType = mirnaRelationDownload.getDownloadType();
         if(minRelevance > maxRelevance){
             throw new BaseException("5001","查询参数错误,选择的最小关联度大于最大关联度");
         }
         if(mirnas != null && mirnas.size() > 10 || diseases != null &&  diseases.size() > 10){
             throw new BaseException("5001","查询mirna、disease数量过多，请重试");
         }
-        List<MirnaRelationDTO> mirnaRelationDTOList = new LinkedList<>();
-        int total = 0;
-        int num1 = 0;
-        int num2 = row;
-        if(resource == 1){
-            //已证实
-            List<Object> objects = relationshipMapper.getByMessage(mirnas, diseases,num1, num2);
-            if(objects == null){
-                Result.success();
-            }
-            total = ((List<Integer>)objects.get(1)).get(0);
-            List<RelationShip> relationShipList = ((List<RelationShip>)objects.get(0));
-            for(RelationShip relationShip : relationShipList){
-                MirnaRelationDTO mirnaRelationDTO = MirnaRelationDTO.builder().pmid(null).mirnaName(relationShip.getMirnaName())
-                        .disease(relationShip.getDiseaseName()).relevance(1.0).resource(CommonUtil.HMDD).pmid(relationShip.getPmid()).build();
-                mirnaRelationDTOList.add(mirnaRelationDTO);
-            }
-        }
-        else{
-//            未证实,预测的
-            List<Object> objects = predictionMapper.getPredictionDTO(mirnas, diseases,minRelevance,maxRelevance,num1, num2);
-            if(objects == null){
-                throw new BaseException("50010","下载失败");
-            }
-            total = ((List<Integer>) objects.get(1)).get(0);
-            List<PredictionDTO> predictionDTOList = (List<PredictionDTO>) objects.get(0);
-            for(PredictionDTO predictionDTO : predictionDTOList){
-                MirnaRelationDTO mirnaRelationDTO = MirnaRelationDTO.builder().pmid(null).mirnaName(predictionDTO.getMirna())
-                        .disease(predictionDTO.getDisease()).resource(CommonUtil.PM).relevance(predictionDTO.getForecastRelevance()).build();
-                mirnaRelationDTOList.add(mirnaRelationDTO);
-            }
-        }
+        MirnaRelationshipData mirnaRelationshipData = relationshipService.getMirnaRelationshipDataWay(mirnas,diseases,minRelevance,maxRelevance,1,row,resource);
+        List<MirnaRelationDTO> mirnaRelationDTOList = mirnaRelationshipData.getMirnaRelationDTOList();
         if(downloadType == 0){
             String template = "templates/Mirna-Disease-Pmid数据模板.xlsx";
             InputStream inputStream = this.getClass().getClassLoader().getResourceAsStream(template);
@@ -368,12 +451,73 @@ public class DownloadController {
             workbook.close();
         }
         else if(downloadType == 1){
-//            下载csv文件：
-            response.setCharacterEncoding("utf-8");
-            response.setContentType("multipart/form-data");
-            response.setHeader("Content-Disposition", "attachment;fileName=download.csv");
-//            还没好
+//            下载csv
+            // 假设从数据库中获取的数据如下
+            List<String[]> data = new ArrayList<>();
+            data.add(new String[]{"miRNA","Disease","Resource","Pmid","Relevance"});
+            for(MirnaRelationDTO mirnaRelationDTO : mirnaRelationDTOList){
+                String str[] = new String[5];
+                str[0] = mirnaRelationDTO.getMirnaName();
+                str[1] = mirnaRelationDTO.getDisease();
+                str[2] = mirnaRelationDTO.getResource();
+                str[3] = mirnaRelationDTO.getPmid() == null ? "":mirnaRelationDTO.getPmid().toString();
+                str[4] = mirnaRelationDTO.getRelevance() == null ? "":mirnaRelationDTO.getRelevance().toString();
+                data.add(str);
+            }
+            // 生成CSV文件内容
+            StringWriter writer = new StringWriter();
+            CSVWriter csvWriter = new CSVWriter(writer);
+            csvWriter.writeAll(data);
+            csvWriter.close();
+            // 设置响应头部信息
+            HttpHeaders headers = new HttpHeaders();
+            String filename = "download.csv";
+            headers.add("Content-Disposition", "attachment; filename=\"" + filename + "\"");
+            // 返回包含CSV数据的响应实体
+            return ResponseEntity
+                    .ok()
+                    .headers(headers)
+                    .contentType(MediaType.parseMediaType("text/csv"))
+                    .body(writer.toString());
         }
+        else if(downloadType == 2){
+            //下载txt文件
+            List<String[]> data = new ArrayList<>();
+            data.add(new String[]{"miRNA","Disease","Resource","Pmid","Relevance"});
+            for(MirnaRelationDTO mirnaRelationDTO : mirnaRelationDTOList){
+                String str[] = new String[5];
+                str[0] = mirnaRelationDTO.getMirnaName();
+                str[1] = mirnaRelationDTO.getDisease();
+                str[2] = mirnaRelationDTO.getResource();
+                str[3] = mirnaRelationDTO.getPmid() == null ? "NAN":mirnaRelationDTO.getPmid().toString();
+                str[4] = mirnaRelationDTO.getRelevance() == null ? "NAN":mirnaRelationDTO.getRelevance().toString();
+                data.add(str);
+            }
+            response.setContentType("text/plain");
+            response.setHeader("Content-Disposition", "attachment;filename=download.txt");
+            OutputStream os = response.getOutputStream();
+            BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(os));
+            for(String[] arr : data){
+                String line = "";
+                for(int i = 0;i < arr.length; i++){
+                    line += arr[i];
+                    if(i < arr.length - 1){
+                        line += "\t";
+                    }
+                }
+                bw.write(line + "\n");
+            }
+            bw.flush();
+            bw.close();
+        }
+        else {
+//           下载json文件
+            String json = JSONUtil.toJsonStr(mirnaRelationDTOList);
+            response.setContentType("application/json");
+            response.setHeader("Content-Disposition", "attachment; filename=data.json");
+            response.getWriter().write(json);
+        }
+        return null;
     }
 
 

@@ -184,6 +184,10 @@ public class RelationshipServiceImpl extends ServiceImpl<RelationshipMapper,Rela
         if(minRelevance > maxRelevance){
             throw new BaseException("5001","查询参数错误,选择的最小关联度大于最大关联度");
         }
+        return Result.success(this.getMirnaRelationshipDataWay(mirnas,diseases,minRelevance,maxRelevance,pageNum,pageSize,resource));
+    }
+
+    public MirnaRelationshipData getMirnaRelationshipDataWay(List<String> mirnas,List<String> diseases , Double minRelevance,Double maxRelevance,int pageNum,int pageSize,int resource ){
         List<MirnaRelationDTO> mirnaRelationDTOList = new LinkedList<>();
         int total = 0;
         int num1 = (pageNum - 1) * pageSize;
@@ -206,7 +210,7 @@ public class RelationshipServiceImpl extends ServiceImpl<RelationshipMapper,Rela
 //            未证实,预测的
             List<Object> objects = predictionMapper.getPredictionDTO(mirnas, diseases,minRelevance,maxRelevance,num1, num2);
             if(objects == null){
-                return Result.success();
+                throw new BaseException("5001","查询出现错误");
             }
             total = ((List<Integer>) objects.get(1)).get(0);
             List<PredictionDTO> predictionDTOList = (List<PredictionDTO>) objects.get(0);
@@ -216,10 +220,12 @@ public class RelationshipServiceImpl extends ServiceImpl<RelationshipMapper,Rela
                 mirnaRelationDTOList.add(mirnaRelationDTO);
             }
         }
+
         MirnaRelationshipData mirnaRelationshipData = MirnaRelationshipData.builder().total(total).pageNum(pageNum).pageSize(pageSize)
                 .mirnaRelationDTOList(mirnaRelationDTOList).build();
-        return Result.success(mirnaRelationshipData);
+        return mirnaRelationshipData;
     }
+
 
     private int AddDiseasePrediction(Integer id, String mirnaName, int cat, List<Node> nodes, List<Link> links, Long disease_id) {
         //第三层的查找、这里要用mirnaName来找disease

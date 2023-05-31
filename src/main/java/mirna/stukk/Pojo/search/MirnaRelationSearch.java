@@ -30,7 +30,7 @@ public class MirnaRelationSearch {
     private Integer pageNum;
     @ApiModelProperty("页面数据量大小")
     private Integer pageSize;
-    @ApiModelProperty("需要查询的数据来源类型")
+    @ApiModelProperty("需要查询的数据来源类型 0：代表 PD  1：代表JHMDD")
     private Integer resource;
     @ApiModelProperty("需要查询的最小关联性")
     private Double minRelevance;
